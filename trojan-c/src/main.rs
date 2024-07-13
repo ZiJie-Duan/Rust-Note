@@ -21,12 +21,6 @@ struct CommandPack {
     args : Vec<String>
 }
 
-fn get_user_input() -> String{
-    let mut user_in = String::new();
-    stdin().read_line(& mut user_in).expect("this is err");
-    return user_in;
-}
-
 
 fn main() {
     match TcpStream::connect("127.0.0.1:7878") {
@@ -41,10 +35,10 @@ fn main() {
                 };
                 
                 let cp_str = serde_json::to_string(&cp).unwrap();
-                let v = Vec::from(cp_str);
+                let v = Vec::from(cp_str.clone());
 
                 stream.write(&v).unwrap();
-                println!("Sent message: {:?}", to_string(cp_str));
+                println!("Sent message: {:?}", cp_str);
 
                 let mut buffer = [0 as u8; 512];
                 match stream.read(&mut buffer) {
@@ -56,6 +50,7 @@ fn main() {
                         break;
                     }
                 }
+                break;
             }
         }
         Err(e) => {
