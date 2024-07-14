@@ -1,7 +1,6 @@
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write, stdin, stdout};
 use std::thread;
-
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -11,23 +10,27 @@ struct HeartBeat {
 
 #[derive(Serialize, Deserialize, Debug)]
 enum CommandType {
-    HOSTSYS,
-    CLISYS,
-    CLICTRL,
-    NONE
+    Hostsys,
+    Clisys,
+    Clictrl,
+    None
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 enum Command {
-    LS,
-    ME,
-    MKDIR,
-    RM,
-    MV,
-    ZIP,
-    RZ,
-    SZ,
-    NONE
+    Ls,
+    Me,
+    Mkdir,
+    Rm,
+    Mv,
+    Zip,
+    Rz,
+    Sz,
+    Listen,
+    Catch,
+    Shutdown,
+    Quit,
+    None
 }
 
 
@@ -41,13 +44,13 @@ struct CommandPack {
 impl CommandPack {
     fn new() -> Self {
         Self {
-            commandtype : CommandType::NONE,
-            command : Command::NONE,
+            commandtype : CommandType::None,
+            command : Command::None,
             args : Vec::new()
         }
     }
 
-    fn from_string(line: &String) -> CommandPack{
+    fn into_string(line: String) -> CommandPack{
 
         let parts = line.split(' ');
         let mut cp = CommandPack::new();
@@ -56,22 +59,26 @@ impl CommandPack {
             match index {
                 0 => {
                     cp.commandtype = match part {
-                        "hs" => CommandType::HOSTSYS,
-                        "cs" => CommandType::CLISYS,
-                        _ => CommandType::CLICTRL
+                        "hs" => CommandType::Hostsys,
+                        "cs" => CommandType::Clisys,
+                        _ => CommandType::Clictrl
                     }
                 }
                 1 => {
                     cp.command = match part {
-                        "ls" => Command::LS,
-                        "me" => Command::ME,
-                        "mkdir" => Command::MKDIR,
-                        "rm" => Command::RM,
-                        "mv" => Command::MV,
-                        "zip" => Command::ZIP,
-                        "rz" => Command::RZ,
-                        "sz" => Command::SZ,
-                        _ => Command::NONE
+                        "ls" => Command::Ls,
+                        "me" => Command::Me,
+                        "mkdir" => Command::Mkdir,
+                        "rm" => Command::Rm,
+                        "mv" => Command::Mv,
+                        "zip" => Command::Zip,
+                        "rz" => Command::Rz,
+                        "sz" => Command::Sz,
+                        "listen" => Command::Listen,
+                        "catch" => Command::Catch,
+                        "shutdown" => Command::Shutdown,
+                        "q" => Command::Quit,
+                        _ => Command::None
                     }
                 }
                 _ => {
@@ -83,14 +90,14 @@ impl CommandPack {
                 }
             }
         }
-        return cp;
+        cp
     }
 }
 
 fn get_user_input() -> String{
     let mut user_in = String::new();
     stdin().read_line(& mut user_in).expect("read_line from stdin err");
-    return user_in;
+    user_in
 }
 
 fn main(){
@@ -99,11 +106,32 @@ fn main(){
         print!(">>");
         stdout().flush().unwrap();
         let line = get_user_input();
-        let cp = CommandPack::from_string(&line);
-
-        println!("{:?}", cp);
-        
+        let cp: CommandPack = CommandPack::into_string(line);
+        println!("CommandPack: {:?}", &cp);
+        controller(&cp);
     }
+}
+
+fn controller(cp : &CommandPack){
+    match cp.commandtype {
+        CommandType::Hostsys => {
+            match cp.command {
+                Command::Quit => std::process::exit(0),
+                _ => 0
+            }
+        },
+        CommandType::Clisys =>{
+            match cp.command {
+                _ => 0
+            }
+        },
+        CommandType::Clictrl => {
+            match cp.command {
+                _ => 0
+            }
+        },
+        _ => 0
+    };
 }
 
 
@@ -146,7 +174,7 @@ fn main2() -> std::io::Result<()> {
     say_hello();
 
     let listener = TcpListener::bind("127.0.0.1:7878")?;
-    println!("Control Server Listing at Port: 7878");
+    println!("Control Server listening at Port: 7878");
 
     for stream in listener.incoming() {
         match stream {
