@@ -6,7 +6,7 @@ use eframe::egui;
 fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 240.0]),
+        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 280.0]),
         ..Default::default()
     };
     eframe::run_native(
@@ -24,6 +24,7 @@ fn main() -> eframe::Result {
 struct MyApp {
     name: String,
     age: u32,
+    status: bool,
 }
 
 impl Default for MyApp {
@@ -31,6 +32,7 @@ impl Default for MyApp {
         Self {
             name: "Arthur".to_owned(),
             age: 42,
+            status: false,
         }
     }
 }
@@ -49,6 +51,9 @@ impl eframe::App for MyApp {
                 self.age += 1;
             }
             ui.label(format!("Hello '{}', age {}", self.name, self.age));
+            ui.checkbox(&mut self.status, "select me ");
+            ui.image("https://img1.baidu.com/it/u=3295530931,1525836560&fm=253&fmt=auto&app=120&f=JPEG?w=895&h=500");
         });
+        println!("name: '{}', age: {}", self.name, self.age);
     }
 }
