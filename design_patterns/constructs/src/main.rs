@@ -23,4 +23,9 @@ fn main() {
     println!("Hello, world!");
     let p = Person::default();
     println!("{:?}", p);
+    let p2 = Person {
+        name: "hello".to_string(),
+        ..Default::default()
+    };
+    println!("{:?}", p2);
 }
