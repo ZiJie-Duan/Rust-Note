@@ -1,8 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 #![allow(rustdoc::missing_crate_level_docs)] // it's an example
-use std::time::Duration;
 
 use eframe::egui;
+use std::time::{Instant, Duration};
 
 fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
@@ -26,6 +26,7 @@ struct MyApp {
     name: String,
     counter: i32,
     paint: i64,
+    start: Instant,
 }
 
 impl Default for MyApp {
@@ -34,6 +35,7 @@ impl Default for MyApp {
             name: "".to_owned(),
             counter: 0,
             paint: 0,
+            start: Instant::now(),
         }
     }
 }
@@ -55,7 +57,7 @@ impl eframe::App for MyApp {
             ui.add_space(15.0);
 
             if ui.button("Say It").clicked() {
-                if self.counter == 0{
+                if self.counter == 0 {
                     self.counter = 180;
                 }
             }
@@ -64,6 +66,10 @@ impl eframe::App for MyApp {
                 ui.label(format!("Type Your Name First"));
             } else {
                 ui.label(format!("Hey! {}", self.name));
+            }
+
+            if self.start.elapsed() > Duration::from_secs(3) {
+                ui.label(format!("It's been {} seconds", self.start.elapsed().as_secs()));
             }
 
             if self.counter < 180 && self.counter > 0 {
@@ -82,6 +88,7 @@ impl eframe::App for MyApp {
             if self.counter == 1 {
                 if ui.button("Clean It").clicked() {
                     self.counter = 0;
+                    self.start = std::time::Instant::now();
                 }
             }
 
